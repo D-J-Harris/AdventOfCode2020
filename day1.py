@@ -7,7 +7,6 @@ with open('inputs/day1.txt', 'r') as f:
 
 num_inp, target = len(inp), 2020
 for ip1 in range(num_inp):
-    found = False
     for ip2 in range(ip1+1, num_inp):
         if inp[ip1] + inp[ip2] == target:
             print(f'answer to puzzle 1 is {inp[ip1] * inp[ip2]}')
