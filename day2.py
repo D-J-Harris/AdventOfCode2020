@@ -16,11 +16,9 @@ for trial in inp:
     target = trial[1]
     password, pass_len = trial[2], len(trial[2])
 
-    if first <= password.count(target) <= second:
-        count_1 += 1
+    count_1 += first <= password.count(target) <= second
     if first <= pass_len and second <= pass_len:
-        if (password[first-1] == target) is not (password[second-1] == target):
-            count_2 += 1
+        count_2 += (password[first-1] == target) is not (password[second-1] == target)
 
 print(f'answer to puzzle 1 is {count_1}')
 print(f'answer to puzzle 2 is {count_2}')
