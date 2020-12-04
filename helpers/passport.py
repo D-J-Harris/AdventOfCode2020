@@ -28,13 +28,13 @@ class Passport:
         return byr_valid and iyr_valid and eyr_valid
 
     def id_check(self):
-        pid_valid = (len(self.pid) == 9 and bool(re.match("^[0-9]*$", self.pid))) if self.pid else 0
+        pid_valid = bool(re.match("^[0-9]{9}$", self.pid)) if self.pid else 0
         cid_valid = 1
         return pid_valid and cid_valid
 
     def color_check(self):
         valid_colors = ['amb', 'blu', 'brn', 'gry', 'grn', 'hzl', 'oth']
-        hcl_valid = (bool(re.match("^#[A-Za-z0-9]*$", self.hcl)) and len(self.hcl) == 7) if self.hcl else 0
+        hcl_valid = (bool(re.match("^#[A-Za-z0-9]{6}$", self.hcl))) if self.hcl else 0
         ecl_valid = self.ecl in valid_colors if self.ecl else 0
         return hcl_valid and ecl_valid
 
