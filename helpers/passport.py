@@ -39,7 +39,7 @@ class Passport:
         return hcl_valid and ecl_valid
 
     def height_check(self):
-        height_unit = self.hgt[-2:] if (self.hgt or len(self.hgt) > 1) else None
+        height_unit = self.hgt[-2:] if (self.hgt and len(self.hgt) > 1) else None
         hgt_valid = {
             'cm': 150 <= int(self.hgt[:-2]) <= 193,
             'in': 59 <= int(self.hgt[:-2]) <= 76
