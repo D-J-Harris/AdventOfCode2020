@@ -4,6 +4,7 @@ import re
 class Passport:
 
     def __init__(self, passport_dict):
+        self.req_keys = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid'}
         self.byr = passport_dict['byr'] if 'byr' in passport_dict else None
         self.iyr = passport_dict['iyr'] if 'iyr' in passport_dict else None
         self.eyr = passport_dict['eyr'] if 'eyr' in passport_dict else None
@@ -12,11 +13,10 @@ class Passport:
         self.ecl = passport_dict['ecl'] if 'ecl' in passport_dict else None
         self.pid = passport_dict['pid'] if 'pid' in passport_dict else None
         self.cid = passport_dict['cid'] if 'cid' in passport_dict else None
-        self.num_keys = len(passport_dict)
         self.dict_repr = passport_dict
 
     def is_valid(self):
-        return self.num_keys == 8 or (self.num_keys == 7 and not self.cid)
+        return self.req_keys.issubset(set(self.dict_repr.keys()))
 
     def is_valid_with_checks(self):
         return self.year_check() and self.id_check() and self.color_check() and self.height_check()
