@@ -34,7 +34,7 @@ class Passport:
 
     def color_check(self):
         valid_colors = ['amb', 'blu', 'brn', 'gry', 'grn', 'hzl', 'oth']
-        hcl_valid = (bool(re.match("^#[A-Za-z0-9]{6}$", self.hcl))) if self.hcl else 0
+        hcl_valid = (bool(re.match("^#[a-f0-9]{6}$", self.hcl))) if self.hcl else 0
         ecl_valid = self.ecl in valid_colors if self.ecl else 0
         return hcl_valid and ecl_valid
 
