@@ -28,7 +28,7 @@ class Passport:
         return byr_valid and iyr_valid and eyr_valid
 
     def id_check(self):
-        pid_valid = len(self.pid) == 9 if self.pid else 0
+        pid_valid = (len(self.pid) == 9 and bool(re.match("^[0-9]*$", self.pid))) if self.pid else 0
         cid_valid = 1
         return pid_valid and cid_valid
 
