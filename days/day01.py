@@ -2,7 +2,7 @@
 from itertools import combinations
 from math import prod
 
-with open('inputs/day1.txt', 'r') as f:
+with open('inputs/day01.txt', 'r') as f:
     inp = [int(x) for x in f.read().split()]
 
 num_inp, target = len(inp), 2020

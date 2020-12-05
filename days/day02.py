@@ -1,6 +1,6 @@
 """Password Philosophy"""
 
-with open('inputs/day2.txt', 'r') as f:
+with open('inputs/day02.txt', 'r') as f:
     inp = []
     for line in f.readlines():
         inps = line.split()

@@ -1,7 +1,7 @@
 """Toboggan Trajectory"""
 import numpy as np
 
-with open('inputs/day3.txt', 'r') as f:
+with open('inputs/day03.txt', 'r') as f:
     inp = []
     for line in f.read().splitlines():
         inp.append(line)

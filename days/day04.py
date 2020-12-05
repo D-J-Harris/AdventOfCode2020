@@ -1,7 +1,7 @@
 """Passport Processing"""
 from helpers.passport import Passport
 
-with open('../inputs/day4.txt', 'r') as f:
+with open('../inputs/day04.txt', 'r') as f:
     inp = []
     for block in f.read().split('\n\n'):
         passport_dict = {}

@@ -1,6 +1,6 @@
 """Binary Boarding"""
 
-with open('../inputs/day5.txt', 'r') as f:
+with open('../inputs/day05.txt', 'r') as f:
     inp = []
     for line in f.read().split():
         inp.append(line)
