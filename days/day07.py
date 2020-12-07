@@ -17,8 +17,8 @@ with open('../inputs/day07.txt', 'r') as f:
 
 def bag_total(g, node):
     total = 0
-    for k, val in g[node].items():
-        total += val['weight'] * (1 + bag_total(g, k))
+    for child, props in g[node].items():
+        total += props['weight'] * (1 + bag_total(g, child))
     return total
 
 
