@@ -11,24 +11,14 @@ with open('../inputs/day07.txt', 'r') as f:
         parent_colour = '-'.join(inp[:2])
         for i in range(num_children):
             colour = '-'.join(inp[5+4*i:7+4*i])
-            weight = inp[4+4*i]
+            weight = int(inp[4+4*i])
             graph.add_edge(bags[parent_colour], bags[colour], weight=weight)
-
-
-def children_freqs(g, node):
-    return [(n, int(g[node][n]["weight"])) for n in nx.neighbors(g, node)]
 
 
 def bag_total(g, node):
     total = 0
-    cfs = children_freqs(g, node)
-    for pair in cfs:
-        child, freq = pair
-        child_children = children_freqs(graph, child)
-        if child_children:
-            total += freq * (1 + bag_total(g, child))
-        else:
-            total += freq
+    for k, val in g[node].items():
+        total += val['weight'] * (1 + bag_total(g, k))
     return total
 
 
