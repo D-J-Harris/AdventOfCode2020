@@ -17,7 +17,7 @@ for _ in range(inp_length):
 print(f'answer to puzzle 1 is {diffs[1] * (diffs[3] + 1)}')
 
 # answer with dynamic programming.
-# needed help learning this solution, elegant though.
+# needed help learning this algorithm from Bhav, elegant though.
 # initial three inputs are manual depending on no. of paths to each.
 dp = [0] * inp_length
 dp[0] = 1
@@ -30,9 +30,10 @@ for idx in range(3, inp_length):
 print(f'answer to puzzle 2 is {dp[-1]}')
 
 
-# alternative solution with noting there are only ever
-# jumps of 1 or 3 - can group the 1s and look at perms.
-# got this by peeking the words 'difference' and 'permutation' on reddit
+# alternative solution with noting that there are only
+# jumps of 1 or 3 - can group the 1s and look at perms of paths in each group.
+# worked this one out with a nudge from reddit about 'differences'.
+# my initial brute-force recursion solution is in commit history.
 perm_options = {1: 1, 2: 2, 3: 4, 4: 7}
 ans = 0
 for start in (inp, inp[1:], inp[2:]):
