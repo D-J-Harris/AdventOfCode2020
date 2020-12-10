@@ -1,8 +1,7 @@
 """Adapter Array"""
 from collections import deque
-from copy import deepcopy
-import numpy as np
 from itertools import groupby
+import numpy as np
 
 with open('../inputs/day10.txt', 'r') as f:
     inp = sorted([int(x) for x in f.read().split()])
