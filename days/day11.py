@@ -5,26 +5,27 @@ with open('../inputs/day11.txt', 'r') as f:
     inp = []
     for line in f.read().splitlines():
         inp.append([c for c in line])
-
-adj = [(i, j) for i in (-1, 0, 1) for j in (-1, 0, 1) if not (i == j == 0)]
 max_x, max_y = len(inp[0]), len(inp)
 
 
-def count_visible(g, x, y, first_part):
-    result = [0] * 8
-    for idx, pair in enumerate(adj):
-        scan_range = max(x, y, max_x-x-1, max_y-y-1)
-        for mult in range(1, (2 if first_part else scan_range)):
-            coords = tuple(mult * x for x in pair)
-            dx, dy = coords
-            if 0 <= (x + dx) < max_x and 0 <= y + dy < max_y:
-                seat =g[y + dy][x + dx]
-                if seat == '#':
-                    result[idx] = 1
+def count_visible(g, x_coord, y_coord, first_part):
+    result = {}
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            if dx == 0 and dy == 0:
+                continue
+            x, y = x_coord + dx, y_coord + dy
+            while 0 <= x < max_x and 0 <= y < max_y:
+                seat =g[y][x]
+                if seat != '.':
+                    if seat == '#':
+                        result[(dx, dy)] = 1
                     break
-                if seat == 'L':
+                if first_part:
                     break
-    return sum(result)
+                else:
+                    x, y = x+dx, y+dy
+    return sum(result.values())
 
 
 def one_pass(g, first_part):
