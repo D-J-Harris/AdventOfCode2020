@@ -1,5 +1,7 @@
 """Seating System"""
 from copy import deepcopy
+import multiprocessing as mp
+from itertools import product
 
 with open('../inputs/day11.txt', 'r') as f:
     inp = []
@@ -8,7 +10,7 @@ with open('../inputs/day11.txt', 'r') as f:
 max_x, max_y = len(inp[0]), len(inp)
 
 
-def count_visible(g, x_coord, y_coord, first_part):
+def get_update(g, x_coord, y_coord, first_part):
     result = {}
     for dx in (-1, 0, 1):
         for dy in (-1, 0, 1):
@@ -25,32 +27,35 @@ def count_visible(g, x_coord, y_coord, first_part):
                     break
                 else:
                     x, y = x+dx, y+dy
-    return sum(result.values())
+    num_occupied = sum(result.values())
+    if g[y_coord][x_coord] == 'L' and num_occupied == 0:
+        return x_coord, y_coord, '#'
+    if g[y_coord][x_coord] == '#' and num_occupied > (3 if first_part else 4):
+        return x_coord, y_coord, 'L'
 
 
 def one_pass(g, first_part):
-    updates = []
-    for y in range(max_y):
-        for x in range(max_x):
-            num_occupied = count_visible(g, x, y, first_part=first_part)
-            if g[y][x] == 'L' and num_occupied == 0:
-                updates.append([x, y, '#'])
-            if g[y][x] == '#' and num_occupied > (3 if first_part else 4):
-                updates.append([x, y, 'L'])
-
+    params = product([g], range(max_x), range(max_y), [first_part])
+    with mp.Pool() as pool:
+        updates = pool.starmap(get_update, params)
     for update in updates:
-        x, y, val = update
-        g[y][x] = val
-    return True if updates else False
+        if update:
+            x, y, val = update
+            if val:
+                g[y][x] = val
+    return any(updates)
 
 
 def complete_game(first_part):
     grid = deepcopy(inp)
-    while True:
+    changed = True
+    while changed:
         changed = one_pass(grid, first_part=first_part)
-        if not changed:
-            return sum([x.count('#') for x in grid])
+    return sum([x.count('#') for x in grid])
 
 
-print(f'answer to puzzle 1 is {complete_game(first_part=True)}')
-print(f'answer to puzzle 2 is {complete_game(first_part=False)}')
+# solution is slower than the non-parallelised version.
+# faster version can be found in previous commit for this file.
+if __name__ == '__main__':
+    print(f'answer to puzzle 1 is {complete_game(first_part=True)}')
+    print(f'answer to puzzle 2 is {complete_game(first_part=False)}')
