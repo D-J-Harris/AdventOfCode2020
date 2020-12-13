@@ -1,4 +1,4 @@
-"""Rain Risk"""
+"""Shuttle Search"""
 from functools import reduce
 
 with open('../inputs/day13.txt', 'r') as f:
