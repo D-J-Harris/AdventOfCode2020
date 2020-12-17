@@ -1,24 +1,17 @@
 """Conway Cubes"""
 from copy import deepcopy
 import numpy as np
-num_cycles = 6
-
-
-def pad_with(vector, pad_width, iaxis, kwargs):
-    pad_value = kwargs.get('padder', num_cycles)
-    vector[:pad_width[0]] = pad_value
-    vector[-pad_width[1]:] = pad_value
-
 
 with open('../inputs/day17.txt', 'r') as f:
     inp = []
     for line in f.read().splitlines():
         inp.append([c for c in line])
     inp = np.array(inp)
+num_cycles = 6
 max_x, max_y, max_z, max_w = len(inp[0]) + 2*num_cycles, len(inp) + 2*num_cycles, 1 + 2*num_cycles, 1 + 2*num_cycles
 
 cube = np.array([[[['.' for row in range(max_x)] for col in range(max_y)] for layer in range(max_z)] for hyp in range(max_w)])
-cube[num_cycles][num_cycles] = np.pad(inp, 6, pad_with, padder='.')
+cube[num_cycles][num_cycles] = np.pad(inp, 6, constant_values='.')
 
 
 def count_active(c, x_coord, y_coord, z_coord, w_coord):
@@ -60,6 +53,6 @@ def complete_game():
     return np.count_nonzero(game_cube == '#')
 
 
-# could optimise by dynamically setting ranges lines 42-45
+# could optimise by dynamically setting ranges lines 35-38
 # based on cycle number, but life is too short.
 print(f'answer to puzzle 2 is {complete_game()}')
