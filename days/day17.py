@@ -51,14 +51,13 @@ def one_pass(c):
     for update in updates:
         x, y, z, w, val = update
         c[w][z][y][x] = val
-    return True if updates else False
 
 
 def complete_game():
     game_cube = deepcopy(cube)
     for i in range(num_cycles):
         one_pass(game_cube)
-    print(np.count_nonzero(game_cube == '#'))
+    return np.count_nonzero(game_cube == '#')
 
 
 # could optimise by dynamically setting ranges lines 42-45
