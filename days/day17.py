@@ -61,4 +61,6 @@ def complete_game():
     print(np.count_nonzero(game_cube == '#'))
 
 
+# could optimise by dynamically setting ranges lines 42-45
+# based on cycle number, but life is too short.
 print(f'answer to puzzle 2 is {complete_game()}')
