@@ -1,59 +1,56 @@
 """Monster Messages"""
 from collections import defaultdict
+import regex
 
 rule_map = defaultdict(list)
-rule_map['a'] = 'a'
-rule_map['b'] = 'b'
 with open('../inputs/test.txt', 'r') as f:
-    for line in f.read().splitlines():
-        if not line:
-            continue
-        if line[0].isdigit():
-            rules = []
-            for rule in line[3:].split(' | '):
-                if rule in ("\"a\"", "\"b\""):
-                    rule_map[int(line[0])] = rule[1]
-                else:
-                    rule_map[int(line[0])].append(list(map(int, rule.rsplit())))
-        elif line[0].isalpha():
-            b=1
+    rules, strings = f.read().split('\n\n')
+    for line in rules.split('\n'):
+        rule_key, rule = line.split(': ')
+        for rule_option in rule.split(' | '):
+            if rule_option in ("\"a\"", "\"b\""):
+                rule_map[rule_key] = rule_option[1]
+            else:
+                rule_map[rule_key].append(rule_option)
 
 
-def check_string_list(obj):
-    return bool(obj) and all(isinstance(elem, str) for elem in obj)
-
-# transform rule_map codes into permutations of allowed codes
-rules = rule_map[0]
-while not all(check_string_list(x) for x in rules):
-    rules_2 = []
-    for rule_idx, rule in enumerate(rules):
-        print(rule)
-        num_perms = 2**sum([len(rule_map[x])-1 for x in rule])
-        new_rules = [[] for _ in range(num_perms)]
-        combo_indexer = 2
-        for perm_idx in range(num_perms):
-            for c in rule:
-                if isinstance(c, str):
-                    new_rules[perm_idx].append(c)
-                else:
-                    val = rule_map[c]
-                    if isinstance(val, str):
-                        new_rules[perm_idx].append(val)
-                    else:
-                        print(perm_idx, combo_indexer, perm_idx%combo_indexer)
-                        print(val)
-
-                        new_rules[perm_idx].append(val[perm_idx % combo_indexer])
-            combo_indexer *= 2
-
-        # flatten each new rule
-        new_rule = [[item for sublist in x for item in sublist] for x in new_rules]
-        print(new_rule)
-        for r in new_rule:
-            rules_2.append(r)
-    rules = rules_2
-    print('huh', rules)
+def reduce_to_regex(rule, first):
+    ban_list = [' ', 'a', 'b', '(', '|',
+                ')', '+', '?', '*', 's']
+    while not all(x in ban_list for x in rule):
+        rule_parts = []
+        for x in rule.split():
+            if x not in ban_list:
+                x = replace(x, first)
+            rule_parts.append(f" {x} ")
+        rule = "".join(rule_parts)
+    return rule
 
 
-#print(f'answer to puzzle 1 is {ans1}')
-#print(f'answer to puzzle 2 is {ans2}')
+def replace(c, first):
+    r = rule_map[c]
+    if not first:
+        if c == '8':
+            return f" ( {r[0]} ) + "
+        elif c == '11':
+            return "  ( 42 ( ? s ) * 31 ) "
+    if len(r) == 1:
+        return f" ( {r[0]} ) "
+    else:
+        return f" ( {r[0]} | {r[1]} ) "
+
+
+def complete(first):
+    starting_rule = rule_map['0'][0]
+    reg = reduce_to_regex(starting_rule, True) if first else reduce_to_regex(starting_rule, False)
+    pattern = f"^{reg.replace(' ', '')}$"
+    print(pattern)
+    ans = 0
+    for line in strings.split('\n'):
+        if regex.match(pattern, line):
+            ans += 1
+    return ans
+
+
+print(f'answer to puzzle 1 is {complete(True)}')
+print(f'answer to puzzle 1 is {complete(False)}')
