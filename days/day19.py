@@ -31,11 +31,11 @@ def replace(c, first):
     r = rule_map[c]
     if not first:
         if c == '8':
-            return f" ( {r[0]} ) + "
+            return f" 42 + "
         elif c == '11':
-            return "  ( 42 ( ? s ) * 31 ) "
+            return " 42 ( ? s ) * 31 "
     if len(r) == 1:
-        return f" ( {r[0]} ) "
+        return f" {r[0]} "
     else:
         return f" ( {r[0]} | {r[1]} ) "
 
@@ -44,7 +44,8 @@ def complete(first):
     starting_rule = rule_map['0'][0]
     reg = reduce_to_regex(starting_rule, True) if first else reduce_to_regex(starting_rule, False)
     pattern = f"^{reg.replace(' ', '')}$"
-    print(pattern)
+    pattern = pattern.replace('s', '1')
+
     ans = 0
     for line in strings.split('\n'):
         if regex.match(pattern, line):
