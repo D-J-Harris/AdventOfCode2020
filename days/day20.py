@@ -31,23 +31,19 @@ ans = 1
 for tile_id, sides in options.items():
     num_sides = sum([len(x) for x in sides.values()])
     if num_sides == 2:
-        print(tile_id)
         ans *= tile_id
+        print(tile_id)
 corner = 2909
-
 # create grid
 rows = int(np.sqrt(len(tiles)))
 grid = []
-flipped = 1
-first_tile, first_side = corner, list(options[corner].keys())[0]
-next_tile, next_side, _ = list(options[corner].values())[0][0]
-print(rows)
+flipped = -1
+first_tile, first_side = corner, list(options[corner].keys())[1]
+next_tile, next_side, _ = list(options[corner].values())[1][0]
 for row_num in range(rows):
     row = [first_tile]
     for _ in range(rows - 2):
         row.append(next_tile)
-        print(next_tile, next_side)
-        print(options[next_tile])
         next_side = side_names[(side_names.index(next_side)+2) % 4]
         next_tile, next_side, _ = options[next_tile][next_side][0]
     row.append(next_tile)
@@ -55,16 +51,16 @@ for row_num in range(rows):
     print(grid)
     if row_num < rows - 1:
         if flipped == -1:
-            next_row_side = side_names[(side_names.index(first_side)+1) % 4]
-        else:
             next_row_side = side_names[(side_names.index(first_side)-1) % 4]
+        else:
+            next_row_side = side_names[(side_names.index(first_side)+1) % 4]
         first_tile, pre_side, flipped_tmp = options[first_tile][next_row_side][0]
         flipped = flipped * flipped_tmp
         if flipped == -1:
-            next_side = side_names[(side_names.index(pre_side)+1) % 4]
+            first_side = side_names[(side_names.index(pre_side)-1) % 4]
         else:
-            next_side = side_names[(side_names.index(pre_side)-1) % 4]
-        next_tile, next_side, _ = options[first_tile][next_side][0]
+            first_side = side_names[(side_names.index(pre_side)+1) % 4]
+        next_tile, next_side, _ = options[first_tile][first_side][0]
 print(grid)
 
 print(f'answer to puzzle 1 is {ans}')
