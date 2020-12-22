@@ -1,6 +1,7 @@
 """Jurassic Jigsaw"""
 from collections import defaultdict
 import numpy as np
+import regex as re
 
 
 def get_side(tile, side):
@@ -41,152 +42,134 @@ for tile_id, sides in tile_sides.items():
         for tile_id_other, sides_other in tile_sides.items():
             for side_name in side_names:
                 if tile_id != tile_id_other and pattern == sides_other[side_name]:
-                    options[tile_id][side].append([int(tile_id_other), side_name, True])
+                    options[tile_id][side].append([int(tile_id_other), side_name])
                 if tile_id != tile_id_other and pattern[::-1] == sides_other[side_name]:
-                    options[tile_id][side].append([int(tile_id_other), side_name, False])
+                    options[tile_id][side].append([int(tile_id_other), side_name])
 
 # find part 1 answer
-ans1 = 1
+ans = 1
 corner_tile_ids = []
 for tile_id, sides in options.items():
     num_sides = sum([len(x) for x in sides.values()])
     if num_sides == 2:
         corner_tile_ids.append(tile_id)
-        ans1 *= tile_id
+        ans *= tile_id
+print(f'answer to puzzle 1 is {ans}')
 
 
-def opposite_side(side):
-    return side_names[(side_names.index(side) + 2) % 4]
+def transform(tile):
+    transformations = []
+    for rep in (0, 1, 2, 3):
+        transformations.append(np.rot90(tile.copy(), rep))
+        tile_ud = np.flipud(tile.copy())
+        transformations.append(np.rot90(tile_ud.copy(), rep))
+        tile_lr = np.fliplr(tile.copy())
+        transformations.append(np.rot90(tile_lr.copy(), rep))
+    return transformations
 
 
 # create grid
-# need to check each of the possible flip states of the starting corner
-# 0=normal, 1=flip_left_right, 2=flip_up_down, 3=flip_udlr
-def get_grid(state, start_corner_id, edge=0):
+def get_grid(start_tile_id, start_tile):
     rows = int(np.sqrt(len(tiles)))
-    grid = np.zeros(shape=(rows, rows, (10-2), (10-2)))
-    grid_ids = np.zeros(shape=(rows, rows, 1, 1))
-    completed_ids = []
-    flip_lr = 1
-    flip_lr_tmp = 1
-    flip_ud = 1
+    tile_width = len(next(iter(tiles.values()))) - 2
+    grid = np.zeros(shape=(rows * tile_width, rows * tile_width))
+    grid_ids = np.zeros(shape=(rows, rows))
+    placed_tile_ids = []
 
-    row_tile_id = start_corner_id
-    row_tile = tiles[row_tile_id]
-    row_side = list(options[row_tile_id].keys())[edge]
-    if state == 1:
-        row_tile = np.fliplr(row_tile)
-        if row_side in ('left', 'right'):
-            row_side = opposite_side(row_side)
-        flip_lr = -1
-        flip_lr_tmp = -1
-    if state == 2:
-        row_tile = np.flipud(row_tile)
-        if row_side in ('top', 'bottom'):
-            row_side = opposite_side(row_side)
-        flip_ud = -1
-    if state == 3:
-        row_tile = np.fliplr(row_tile)
-        row_tile = np.flipup(row_tile)
-        row_side = opposite_side(row_side)
-        flip_lr = -1
-        flip_lr_tmp = -1
-        flip_ud = -1
-    # rotate to face downwards
-    row_tile = np.rot90(row_tile, side_names.index(row_side))
-    next_tile_id, received_side, matched = list(options[row_tile_id].values())[edge][0]
-    next_tile = tiles[next_tile_id]
-    if not matched:
-        if received_side == 'right':
-            next_tile = np.flipud(next_tile)
-        if received_side == 'top':
-            flip_lr_tmp = -1 * flip_lr
-    else:
-        if received_side == 'bottom':
-            flip_lr_tmp = -1 * flip_lr
-        if received_side == 'left':
-            next_tile = np.flipud(next_tile)
-    if flip_lr_tmp == -1:
-        next_tile = np.fliplr(next_tile)
-    next_tile = np.rot90(next_tile, 2 + side_names.index(received_side))
+    top_tile = start_tile.copy()
+    top_tile_id = start_tile_id
+    current_tile = start_tile.copy()
+    current_tile_id = start_tile_id
+    print('heya im here',get_side(current_tile, 'bottom'))
+    print(current_tile_id)
     for col_num in range(rows):
-        grid[0][col_num] = row_tile[1:-1, 1:-1]
-        grid_ids[0][col_num] = int(row_tile_id)
-        completed_ids.append(row_tile_id)
-        for row_num in range(1, rows - 1):
-            grid[row_num][col_num] = next_tile[1:-1, 1:-1]
-            grid_ids[row_num][col_num] = int(next_tile_id)
-            completed_ids.append(next_tile_id)
-            next_side = opposite_side(received_side)
-            next_tile_id, received_side, matched = options[next_tile_id][next_side][0]
-            next_tile = tiles[next_tile_id]
-            if not matched:
-                if received_side == 'right':
-                    next_tile = np.flipud(next_tile)
-                if received_side == 'top':
-                    flip_lr_tmp = -1 * flip_lr_tmp
-            else:
-                if received_side == 'bottom':
-                    flip_lr_tmp = -1 * flip_lr_tmp
-                if received_side == 'left':
-                    next_tile = np.flipud(next_tile)
-            if flip_lr_tmp == -1:
-                next_tile = np.fliplr(next_tile)
-
-            next_tile = np.rot90(next_tile, 2 + side_names.index(received_side))
-        grid[-1][col_num] = next_tile[1:-1, 1:-1]
-        grid_ids[-1][col_num] = int(next_tile_id)
-        completed_ids.append(next_tile_id)
+        print(col_num, top_tile_id)
+        grid[0:tile_width, tile_width*col_num:(tile_width*col_num+tile_width)] = top_tile[1:-1, 1:-1].copy()
+        grid_ids[0, col_num] = int(top_tile_id)
+        print(grid_ids)
+        placed_tile_ids.append(top_tile_id)
+        for row_num in range(1, rows):
+            print('enter here')
+            print('testing against', current_tile_id)
+            found = False
+            for tile_id, tile, in tiles.items():
+                if tile_id not in placed_tile_ids:
+                    tile = tiles[tile_id]
+                    print('attempt', tile_id)
+                    for t in transform(tile):
+                        if get_side(t, 'top') == get_side(current_tile, 'bottom'):
+                            print('b',tile_id)
+                            grid[tile_width*row_num:(tile_width*row_num+tile_width), tile_width*col_num:(tile_width*col_num+tile_width)] = t[1:-1, 1:-1].copy()
+                            print('a',tile_id)
+                            grid_ids[row_num, col_num] = int(tile_id)
+                            print(grid_ids)
+                            placed_tile_ids.append(tile_id)
+                            current_tile = t.copy()
+                            current_tile_id = tile_id
+                            found = True
+                        if found:
+                            break
+                    if found:
+                        break
+            if not found:
+                print("error finding a bottom tile")
+                raise Exception("configuration not suitable")
+        print('time to move')
         if col_num < rows - 1:
-            next_row_side = side_names[(side_names.index(row_side) + 1) % 4]
-            try:
-                row_tile_id, received_side, matched = options[row_tile_id][next_row_side][0]
-                if row_tile_id in completed_ids:
-                    next_row_side = side_names[(side_names.index(row_side) - 1) % 4]
-                    row_tile_id, received_side, matched = options[row_tile_id][next_row_side][0]
-            except:
-                next_row_side = side_names[(side_names.index(row_side) - 1) % 4]
-                row_tile_id, received_side, matched = options[row_tile_id][next_row_side][0]
-
-            row_tile = tiles[row_tile_id]
-            if not matched:
-                if received_side == 'bottom':
-                    row_tile = np.fliplr(row_tile)
-                    flip_lr = -1
-                if received_side == 'left':
-                    flip_ud = -1 * flip_ud
-            else:
-                if received_side == 'right':
-                    flip_ud = -1 * flip_ud
-                if received_side == 'top':
-                    row_tile = np.fliplr(row_tile)
-                    flip_lr = -1
-            if flip_ud == -1:
-                row_tile = np.flipud(row_tile)
-
-            # rotate to face left
-            row_tile = np.rot90(row_tile, 3 + side_names.index(received_side))
-            row_side = side_names[(side_names.index(received_side) + 1) % 4]
-            try:
-                next_tile_id, received_side, matched = options[row_tile_id][row_side][0]
-                if next_tile_id in completed_ids:
-                    row_side = side_names[(side_names.index(received_side) - 1) % 4]
-                    next_tile_id, received_side, matched = options[row_tile_id][row_side][0]
-            except:
-                row_side = side_names[(side_names.index(received_side) - 1) % 4]
-                next_tile_id, received_side, matched = options[row_tile_id][row_side][0]
-
-            next_tile = tiles[next_tile_id]
-            next_tile = np.rot90(next_tile, 2 + side_names.index(received_side))
-    print(grid_ids.reshape((rows, rows)))
-    #return grid.reshape((rows * (10-2), rows * (10-2)))
+            found = False
+            for tile_id, tile, in tiles.items():
+                if tile_id not in placed_tile_ids:
+                    tile = tiles[tile_id]
+                    for t in transform(tile):
+                        if get_side(t, 'left') == get_side(top_tile, 'right'):
+                            print('b', tile_id)
+                            print('width',tile_width)
+                            #grid[0:tile_width, tile_width*col_num:(tile_width*col_num + tile_width)] = t[1:-1, 1:-1]
+                            print('a', tile_id)
+                            #grid_ids[0, col_num] = int(tile_id)
+                            print(grid_ids)
+                            #placed_tile_ids.append(tile_id)
+                            top_tile = t.copy()
+                            top_tile_id = tile_id
+                            current_tile = t.copy()
+                            current_tile_id = tile_id
+                            found = True
+                        if found:
+                            break
+                    if found:
+                        break
+            if not found:
+                print("error finding an adjacent tile")
+                raise Exception("configuration not suitable")
+    print(grid_ids)
     return grid
 
 
-option = 0  # 3
-edge = 0
-state = 2  # 1
-print(corner_tile_ids[option])
-print(get_grid(state, corner_tile_ids[option], edge=edge))
-print(f'answer to puzzle 1 is {ans1}')
-#print(f'answer to puzzle 1 is {complete(False)}')
+grid = None
+for tile_id in corner_tile_ids:
+    print(tile_id)
+    tile = tiles[tile_id]
+    for transform_tile in transform(tile):
+        try:
+            grid = get_grid(tile_id, transform_tile)
+            print(grid)
+            break
+        except:
+            print("error with initial configuration, trying a different one")
+    else:
+        break
+
+monster = np.array([x for x in '                  # '])
+monster = np.concatenate((monster, np.array([x for x in '#    ##    ##    ###'])))
+monster = np.concatenate((monster, np.array([x for x in ' #  #  #  #  #  #   '])))
+monster = monster.reshape(3, -1)
+
+print(grid.flatten())
+
+count = 0
+for grid_t in transform(grid):
+    for left_idx in range(grid_t.shape[1]-monster.shape[1]):
+        for top_idx in range(grid_t.shape[0]-monster.shape[0]):
+            if grid[left_idx+monster.shape[0], top_idx+monster.shape[1]]:
+                count += 1
+    print(f"answer to puzzle 2 is {sum(c == '#' for c in grid_t) - 15 * count}")
