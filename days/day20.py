@@ -16,10 +16,8 @@ def get_side(tile, side):
 
 
 with open('../inputs/day20.txt', 'r') as f:
-    tile_sides = {}
     tiles = {}
     for block in f.read().split('\n\n'):
-        sides = {}
         lines = block.split('\n')
         tile_id = int(lines[0][5:-1])
         tile = np.array([x for x in lines[1]])
@@ -27,28 +25,26 @@ with open('../inputs/day20.txt', 'r') as f:
             tile = np.concatenate((tile, np.array([x for x in line])))
         tile = tile.reshape(int(np.sqrt(len(tile))), -1)
         tile = np.where(tile == '#', 1, 0)
-        sides['top'] = get_side(tile, 'top')
-        sides['bottom'] = get_side(tile, 'bottom')
-        sides['left'] = get_side(tile, 'left')
-        sides['right'] = get_side(tile, 'right')
-        tile_sides[tile_id] = sides
         tiles[tile_id] = tile
+rows = int(np.sqrt(len(tiles)))
+tile_width = len(next(iter(tiles.values()))) - 2
 
 # find side options
 options = defaultdict(lambda: defaultdict(list))
 side_names = ('bottom', 'left', 'top', 'right')
-for tile_id, sides in tile_sides.items():
-    for side, pattern in sides.items():
-        for tile_id_other, sides_other in tile_sides.items():
-            for side_name in side_names:
-                if tile_id != tile_id_other and pattern == sides_other[side_name]:
-                    options[tile_id][side].append([int(tile_id_other), side_name])
-                if tile_id != tile_id_other and pattern[::-1] == sides_other[side_name]:
-                    options[tile_id][side].append([int(tile_id_other), side_name])
+for tile_id, tile in tiles.items():
+    for tile_id_other, tile_other in tiles.items():
+        for side_name in side_names:
+            for side_name_other in side_names:
+                if tile_id != tile_id_other and \
+                        get_side(tile, side_name) == get_side(tile_other, side_name_other):
+                    options[tile_id][side_name].append(int(tile_id_other))
+                if tile_id != tile_id_other and \
+                        get_side(tile, side_name)[::-1] == get_side(tile_other, side_name_other):
+                    options[tile_id][side_name].append(int(tile_id_other))
 
 # find part 1 answer
-ans = 1
-corner_tile_ids = []
+ans, corner_tile_ids = 1, []
 for tile_id, sides in options.items():
     num_sides = sum([len(x) for x in sides.values()])
     if num_sides == 2:
@@ -68,21 +64,15 @@ def transform(tile):
     return transformations
 
 
-# create grid
-def get_grid(start_tile_id, start_tile):
-    rows = int(np.sqrt(len(tiles)))
-    tile_width = len(next(iter(tiles.values()))) - 2
+def create_grid(start_tile_id, start_tile):
     grid = np.zeros(shape=(rows * tile_width, rows * tile_width))
-    grid_ids = np.zeros(shape=(rows, rows))
     placed_tile_ids = []
 
     top_tile = start_tile.copy()
     top_tile_id = start_tile_id
     current_tile = start_tile.copy()
-    current_tile_id = start_tile_id
     for col_num in range(rows):
         grid[0:tile_width, tile_width*col_num:(tile_width*col_num+tile_width)] = top_tile[1:-1, 1:-1].copy()
-        grid_ids[0, col_num] = int(top_tile_id)
         placed_tile_ids.append(top_tile_id)
         for row_num in range(1, rows):
             found = False
@@ -92,10 +82,8 @@ def get_grid(start_tile_id, start_tile):
                     for t in transform(tile):
                         if get_side(t, 'top') == get_side(current_tile, 'bottom'):
                             grid[tile_width*row_num:(tile_width*row_num+tile_width), tile_width*col_num:(tile_width*col_num+tile_width)] = t[1:-1, 1:-1].copy()
-                            grid_ids[row_num, col_num] = int(tile_id)
                             placed_tile_ids.append(tile_id)
                             current_tile = t.copy()
-                            current_tile_id = tile_id
                             found = True
                         if found:
                             break
@@ -113,7 +101,6 @@ def get_grid(start_tile_id, start_tile):
                             top_tile = t.copy()
                             top_tile_id = tile_id
                             current_tile = t.copy()
-                            current_tile_id = tile_id
                             found = True
                         if found:
                             break
@@ -124,31 +111,25 @@ def get_grid(start_tile_id, start_tile):
     return grid
 
 
-grid = None
-for tile_id in corner_tile_ids:
-    tile = tiles[tile_id]
-    for transform_tile in transform(tile):
-        try:
-            grid = get_grid(tile_id, transform_tile)
-            break
-        except:
-            print("error with initial configuration, trying a different one")
-    else:
-        break
+def get_grid():
+    for tile_id in corner_tile_ids:
+        tile = tiles[tile_id]
+        for transform_tile in transform(tile):
+            try:
+                grid = create_grid(tile_id, transform_tile)
+                return grid
+            except:
+                print("error with initial configuration, trying a different one")
+    raise Exception("something has gone horribly wrong")
 
 
-rows = int(np.sqrt(len(tiles)))
-tile_width = len(next(iter(tiles.values()))) - 2
 monster_width = 20
 monster = f"(.{{{(rows*tile_width)-monster_width}}})".join(['..................1.',
                                                             '1....11....11....111',
                                                             '.1..1..1..1..1..1...'])
-
-count = 0
+count, grid = 0, get_grid()
 for grid_t in transform(grid):
     flat_grid = ''.join([''.join([str(int(e)) for e in g]) for g in grid_t])
-    m = len(re.findall(monster, flat_grid, overlapped=True))
-    count += m
-print(np.sum(grid == 1))
+    c = len(re.findall(monster, flat_grid, overlapped=True))
+    count += c
 print(f"answer to puzzle 2 is {np.sum(grid == 1) - 15*count}")
-
