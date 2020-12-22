@@ -1,7 +1,7 @@
 """Jurassic Jigsaw"""
 from collections import defaultdict
 import numpy as np
-import regex as re
+import re
 
 
 def get_side(tile, side):
@@ -159,17 +159,23 @@ for tile_id in corner_tile_ids:
     else:
         break
 
-monster = np.array([x for x in '                  # '])
-monster = np.concatenate((monster, np.array([x for x in '#    ##    ##    ###'])))
-monster = np.concatenate((monster, np.array([x for x in ' #  #  #  #  #  #   '])))
-monster = monster.reshape(3, -1)
 
-print(grid.flatten())
+rows = int(np.sqrt(len(tiles)))
+tile_width = len(next(iter(tiles.values()))) - 2
+monster_width = 20
+monster = f"(.{{{(rows*tile_width)-monster_width}}})".join(['..................1.',
+                                                            '1....11....11....111',
+                                                            '.1..1..1..1..1..1...'])
 
+print(monster)
 count = 0
 for grid_t in transform(grid):
-    for left_idx in range(grid_t.shape[1]-monster.shape[1]):
-        for top_idx in range(grid_t.shape[0]-monster.shape[0]):
-            if grid[left_idx+monster.shape[0], top_idx+monster.shape[1]]:
-                count += 1
-    print(f"answer to puzzle 2 is {sum(c == '#' for c in grid_t) - 15 * count}")
+    print('hmm')
+    flat_grid = ''.join([''.join([str(int(e)) for e in g]) for g in grid_t])
+    print(flat_grid)
+    m = len(re.findall(monster, flat_grid))
+    count += m
+    print(m)
+print(count)
+print(f"answer to puzzle 2 is {np.sum(grid == 1) - 15*count}")
+
