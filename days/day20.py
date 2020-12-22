@@ -1,7 +1,7 @@
 """Jurassic Jigsaw"""
 from collections import defaultdict
 import numpy as np
-import re
+import regex as re
 
 
 def get_side(tile, side):
@@ -15,7 +15,7 @@ def get_side(tile, side):
         return ''.join(str(x[-1]) for x in tile)
 
 
-with open('../inputs/test.txt', 'r') as f:
+with open('../inputs/day20.txt', 'r') as f:
     tile_sides = {}
     tiles = {}
     for block in f.read().split('\n\n'):
@@ -80,29 +80,19 @@ def get_grid(start_tile_id, start_tile):
     top_tile_id = start_tile_id
     current_tile = start_tile.copy()
     current_tile_id = start_tile_id
-    print('heya im here',get_side(current_tile, 'bottom'))
-    print(current_tile_id)
     for col_num in range(rows):
-        print(col_num, top_tile_id)
         grid[0:tile_width, tile_width*col_num:(tile_width*col_num+tile_width)] = top_tile[1:-1, 1:-1].copy()
         grid_ids[0, col_num] = int(top_tile_id)
-        print(grid_ids)
         placed_tile_ids.append(top_tile_id)
         for row_num in range(1, rows):
-            print('enter here')
-            print('testing against', current_tile_id)
             found = False
             for tile_id, tile, in tiles.items():
                 if tile_id not in placed_tile_ids:
                     tile = tiles[tile_id]
-                    print('attempt', tile_id)
                     for t in transform(tile):
                         if get_side(t, 'top') == get_side(current_tile, 'bottom'):
-                            print('b',tile_id)
                             grid[tile_width*row_num:(tile_width*row_num+tile_width), tile_width*col_num:(tile_width*col_num+tile_width)] = t[1:-1, 1:-1].copy()
-                            print('a',tile_id)
                             grid_ids[row_num, col_num] = int(tile_id)
-                            print(grid_ids)
                             placed_tile_ids.append(tile_id)
                             current_tile = t.copy()
                             current_tile_id = tile_id
@@ -112,9 +102,7 @@ def get_grid(start_tile_id, start_tile):
                     if found:
                         break
             if not found:
-                print("error finding a bottom tile")
                 raise Exception("configuration not suitable")
-        print('time to move')
         if col_num < rows - 1:
             found = False
             for tile_id, tile, in tiles.items():
@@ -122,13 +110,6 @@ def get_grid(start_tile_id, start_tile):
                     tile = tiles[tile_id]
                     for t in transform(tile):
                         if get_side(t, 'left') == get_side(top_tile, 'right'):
-                            print('b', tile_id)
-                            print('width',tile_width)
-                            #grid[0:tile_width, tile_width*col_num:(tile_width*col_num + tile_width)] = t[1:-1, 1:-1]
-                            print('a', tile_id)
-                            #grid_ids[0, col_num] = int(tile_id)
-                            print(grid_ids)
-                            #placed_tile_ids.append(tile_id)
                             top_tile = t.copy()
                             top_tile_id = tile_id
                             current_tile = t.copy()
@@ -139,20 +120,16 @@ def get_grid(start_tile_id, start_tile):
                     if found:
                         break
             if not found:
-                print("error finding an adjacent tile")
                 raise Exception("configuration not suitable")
-    print(grid_ids)
     return grid
 
 
 grid = None
 for tile_id in corner_tile_ids:
-    print(tile_id)
     tile = tiles[tile_id]
     for transform_tile in transform(tile):
         try:
             grid = get_grid(tile_id, transform_tile)
-            print(grid)
             break
         except:
             print("error with initial configuration, trying a different one")
@@ -167,15 +144,11 @@ monster = f"(.{{{(rows*tile_width)-monster_width}}})".join(['..................1
                                                             '1....11....11....111',
                                                             '.1..1..1..1..1..1...'])
 
-print(monster)
 count = 0
 for grid_t in transform(grid):
-    print('hmm')
     flat_grid = ''.join([''.join([str(int(e)) for e in g]) for g in grid_t])
-    print(flat_grid)
-    m = len(re.findall(monster, flat_grid))
+    m = len(re.findall(monster, flat_grid, overlapped=True))
     count += m
-    print(m)
-print(count)
+print(np.sum(grid == 1))
 print(f"answer to puzzle 2 is {np.sum(grid == 1) - 15*count}")
 
